@@ -5,8 +5,8 @@ from io import BytesIO
 from typing import Dict, Any, Union
 
 from fastapi import FastAPI, Query, File, UploadFile
-from app.model.model import inference_on_img, inference_on_path
-from app.model.model import __version__ as model_version
+from model.model import inference_on_img, inference_on_path
+from model.model import __version__ as model_version
 
 app = FastAPI()
 
