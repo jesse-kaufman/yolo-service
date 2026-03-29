@@ -1,0 +1,64 @@
+name: yolo
+
+services:
+  trashcan:
+    container_name: yolo-trashcan
+    image: glandix/yolo
+    env_file: .env
+    restart: always
+    hostname: test
+    volumes:
+      - ./trashcan-model/best.pt:/home/app/yolov8m.pt
+      - /mnt/net/server/cameras:/media/cameras
+    healthcheck:
+      test: curl -f http://localhost:8080 -s
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          pids: 600
+          cpus: "3"
+          memory: 8G
+    security_opt:
+      - no-new-privileges=true
+
+  objects:
+    container_name: yolo-objects
+    image: glandix/yolo
+    networks:
+      - default
+      - egress
+    build:
+      context: yolo-trashcan/build
+      dockerfile: Dockerfile
+      pull: true
+    env_file: .env
+    ports:
+      - 9090:8080
+    restart: always
+    volumes:
+      - ./objects-model/best.pt:/home/app/yolov8m.pt
+      - /mnt/net/server/cameras:/media/cameras
+    healthcheck:
+      test: curl -f http://localhost:8080 -s
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          pids: 600
+          cpus: "3"
+          memory: 8G
+    security_opt:
+      - no-new-privileges=true
+
+networks:
+  default:
+    name: yolo_internal
+    internal: true
+  egress:
