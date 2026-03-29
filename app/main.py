@@ -8,6 +8,15 @@ from fastapi import FastAPI, Query, File, UploadFile
 from model.model import inference_on_img, inference_on_path
 from model.model import __version__ as model_version
 
+import logging
+
+class EndpointFilter(logging.Filter):
+    def filter(self, record):
+        msg = record.getMessage()
+        return not ('127.0.0.1' in msg and 'GET / ' in msg)
+
+logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
+
 app = FastAPI()
 
 @app.get('/')
