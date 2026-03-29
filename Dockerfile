@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV MODEL_PATH=yolov8m.pt
 
 RUN apt-get update && apt-get install -y \
-    python3 python3-pip libgl1 libglib2.0-0 \
+    curl python3 python3-pip libgl1 libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
