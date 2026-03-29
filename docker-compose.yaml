@@ -1,49 +1,60 @@
 name: yolo
 
 services:
+  ##
+  # OBJECTS
+  ##
+  objects:
+    container_name: yolo-objects
+    image: glandix/yolo
+    build:
+      context: .
+      dockerfile: Dockerfile
+      pull: true
+    env_file: .env
+    ports:
+      - 9090:8000
+    restart: always
+    volumes:
+      - ./object-model/best.pt:/app/yolov8m.pt
+      - ./object-model/config:/root/.config/Ultralytics
+      - /mnt/net/server/cameras:/media/cameras
+    healthcheck:
+      test: curl -f http://localhost:8000 -s
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          pids: 600
+          cpus: "3"
+          memory: 8G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    security_opt:
+      - no-new-privileges=true
+
+  ##
+  # TRASH CAN
+  ##
   trashcan:
     container_name: yolo-trashcan
     image: glandix/yolo
     env_file: .env
     restart: always
-    hostname: test
-    volumes:
-      - ./trashcan-model/best.pt:/home/app/yolov8m.pt
-      - /mnt/net/server/cameras:/media/cameras
-    healthcheck:
-      test: curl -f http://localhost:8080 -s
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
-    deploy:
-      resources:
-        limits:
-          pids: 600
-          cpus: "3"
-          memory: 8G
-    security_opt:
-      - no-new-privileges=true
-
-  objects:
-    container_name: yolo-objects
-    image: glandix/yolo
-    networks:
-      - default
-      - egress
-    build:
-      context: yolo-trashcan/build
-      dockerfile: Dockerfile
-      pull: true
-    env_file: .env
     ports:
-      - 9090:8080
-    restart: always
+      - 9091:8000
     volumes:
-      - ./objects-model/best.pt:/home/app/yolov8m.pt
+      - ./trashcan-model/best.pt:/app/yolov8m.pt
+      - ./trashcan-model/config:/root/.config/Ultralytics
       - /mnt/net/server/cameras:/media/cameras
     healthcheck:
-      test: curl -f http://localhost:8080 -s
+      test: curl -f http://localhost:8000 -s
       interval: 30s
       timeout: 10s
       retries: 5
@@ -54,11 +65,11 @@ services:
           pids: 600
           cpus: "3"
           memory: 8G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     security_opt:
       - no-new-privileges=true
 
-networks:
-  default:
-    name: yolo_internal
-    internal: true
-  egress:
